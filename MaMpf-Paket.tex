@@ -1,0 +1,643 @@
+% pdfLaTeX gibt Fehlermeldung aus: Package inputenc Error: Invalid UTF-8 byte sequence
+% Verwende daher LuaLaTeX
+% Folgende Dateien müssen im selben Ordner wie diese liegen: mampf.sty, mampf-icons.tex
+% Folgende Ordner müssen im selben Ordner wie diese Datei liegen: symbols, screenshots
+
+\documentclass[parskip=off,index=totocnumbered]{scrartcl}
+
+\title{MaMpf-Paket}
+\subtitle{Version 2.11 (2021/4/16)}
+\author{Copyright Dr. Hendrik Kasten}
+\date{\today}
+
+\usepackage[x11names]{xcolor}
+
+\usepackage{graphicx}
+
+\usepackage[ngerman]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{luainputenc} % Für LuaLaTeX
+%\usepackage[utf8]{inputenc} % Für pdfLaTeX
+\usepackage[german]{csquotes}
+
+\usepackage{array, blindtext, booktabs, caption, framed, listings, longtable, microtype, multicol, textcomp, verbatim}
+% caption: Bildunterschrift außerhalb Gleitumgebung
+% framed: Boxen für Buttons
+% listings: Verbatim mit Zeilenumbruch
+% multicol: Text in mehrere Spalten setzen
+% verbatim: schönerer Inline-Code
+
+\usepackage{adjustbox}
+
+\colorlet{shadecolor}{LightSteelBlue3!60!}
+
+%\usepackage[Q=yes,div=yes,bsdiv=yes]{examplep} % Description-Item in Verbatim; geht seit Version 2.1 nicht mehr
+
+\usepackage{fancyvrb}
+\newcommand\vitem[1][]{\SaveVerb[ % Description-Item in Verbatim; neue Lösung, da vorherige nicht mehr funktioniert
+    aftersave={\item[\textnormal{\UseVerb[#1]{vsave}}]}]{vsave}}
+
+\usepackage{setspace}
+\onehalfspacing
+
+\usepackage[strict]{changepage} % Für eingerückte Umgebung
+
+\newenvironment{rücknstück} % Eingerückte Umgebung
+	{\begin{adjustwidth}{1cm}{0cm}} 
+	{\end{adjustwidth}}
+	
+\newenvironment{rückkeinstück}
+	{\begin{adjustwidth}{0cm}{0cm}\footnotesize \singlespace \centering} 
+	{\end{adjustwidth} \onehalfspacing}
+	
+\newenvironment{rückkeinstück2}
+	{\begin{adjustwidth}{0cm}{0cm}\footnotesize \singlespace} 
+	{\end{adjustwidth} \onehalfspacing}
+
+\usepackage[on,german]{mampf}
+\setmampfurl{https://mampf.mathi.uni-heidelberg.de}
+
+\usepackage{hyperref}
+
+\input{mampf-icons}
+
+\begin{document}
+\vspace{-1cm}
+\maketitle
+\vspace{-1cm}
+\tableofcontents
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Einleitung
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Einleitung}
+Dieses Paket ist für alle gedacht, die eine skriptbasierte Vorlesung mit der \href{https://mampf.mathi.uni-heidelberg.de/}{MaMpf}\footnote{\url{https://mampf.mathi.uni-heidelberg.de/}} -- der mathematischen Medienplattform -- halten möchten. MaMpf ist eine vernetzte Hypermedia-Plattform, die am Mathematischen Institut der Universität Heidelberg betrieben und entwickelt wird. Mithilfe dieses Pakets können folgende Aufgaben vereinfacht werden:
+   \begin{itemize} 
+      \item \textsf{\textbf{Import von Labels (Skriptgliederung und Tags) in MaMpf}}, dazu gibt es den Befehl \verb|\mampflabel|.
+      \item \textsf{\textbf{Import der Gliederung beim Editieren von Videos}} mit dem mampf-eigenen THymE-Editor.
+      \item \textsf{\textbf{Anreicherung des Skripts um Referenzen auf andere Medien auf MaMpf}}, dies lässt sich durch die Befehle \verb|\mampfdest|, \verb|\mampfpage|, \verb|\mampftime|, \verb|\mampfquiz| und \verb|\mampfgeo| bewerkstelligen.
+   \end{itemize}
+Dies wird mit einer csv-Datei, die in die pdf-Datei eingebettet wird und von MaMpf ausgelesen werden kann, realisiert.
+   
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Einbinden des Pakets und Optionen
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Einbinden des Pakets und Optionen}
+Zunächst muss das MaMpf-Paket heruntergeladen und im richtigen Ordner\footnote{Welcher Ordner der richtige ist, hängt von der verwendeten Distribution ab. Die mampf.sty kann auch in dem Verzeichnis abgelegt werden, in dem sich die tex-Datei befindet, in die das MaMpf-Paket eingebunden werden soll.} abgelegt werden. Um das MaMpf-Paket zu nutzen, muss es in der Präambel der tex-Datei eingebunden werden. Außerdem muss die Homepage der verwendeten MaMpf festgelegt werden. Vor \verb|\begin{document}| sollte dazu folgender Code eingefügt werden:
+
+\begin{verbatim}
+\usepackage[<Modus>,<Sprache>]{mampf}
+\setmampfurl{<URL>}
+\end{verbatim}
+
+\noindent Konkret kann das z.B. so aussehen:
+
+\begin{verbatim}
+\usepackage[on,german]{mampf}
+\setmampfurl{https://mampf.mathi.uni-heidelberg.de}
+\end{verbatim}
+
+\noindent Das MaMpf-Label-Paket verfügt über die Optionen <Modus> und <Sprache>.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Modus}
+Als Modi stehen \verb|on| und \verb|off| zur Verfügung.
+   \begin{description}
+      \vitem+on+ Alle Funktionen des MaMpf-Pakets sind aktiviert. MaMpf kann mit \verb|\mampflabel| versehene Informationen extrahieren, nachdem der pdf-File auf MaMpf hochgeladen worden ist. In den Rand des Skripts können mit den Befehlen \verb|\mampfdest|, \verb|\mampfpage|, \verb|\mampftime|, \verb|\mampfquiz| und \verb|\mampfgeo| Verlinkungen zu Medien auf MaMpf eingefügt werden.
+      \vitem+off+ Sämtliche Funktionen des MaMpf-Pakets sind inaktiv: Die csv-Datei wird nicht in den pdf-File eingebettet. Der Befehl \verb|\mampflabel| verhält sich wie \verb|\label|. Alle weiteren MaMpf-Paket-Befehle werden ignoriert.     
+   \end{description}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Sprache}
+Mögliche Sprachen sind \verb|german| und \verb|english|.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Standardeinstellung}
+Die Standardeinstellung ist \verb|on|, \verb|german|. Diese wird verwendet, wenn keine anderen Optionen angegeben worden sind.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Verwendung der Befehle
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Verwendung der Befehle}
+\subsection{Gliederung und Tags: Der \texttt{\textbackslash mampflabel}-Befehl}
+
+MaMpf kann die Gliederung des Dokuments übernehmen und Tags importieren. Alles, was importiert werden soll, muss mit einem \verb|\mampflabel| versehen werden. Dabei ist zu beachten, dass für alle \verb|\mampflabel| für Kapitel und Abschnitte das optionale Argument <Beschreibung> angegeben werden muss. Neben dem optionalen Argument <Beschreibung> gibt es die nichtoptionalen Argumente <Label> und <Typ>:
+\begin{verbatim}
+\mampflabel[<Beschreibung>]{<Label>}{<Typ>}
+\end{verbatim}
+\noindent Das wird in diesem Beispiel demonstriert:
+\begin{verbatim}
+\chapter{Säugetiere} \mampflabel[Säugetiere]{Saeugetiere}{Kapitel}
+\end{verbatim}
+   
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Beschreibung}
+MaMpf zeigt die Beschreibung als Namen des Tags bzw. als Gliederungspunkt an. Damit der Import des Skripts gelingen kann, müssen \verb|\mampflabel| für Kapitel und Abschnitte eine Beschreibung enthalten.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Label}
+Das Label verhält sich wie das gewöhnliche \LaTeX-Label und kann genauso (z.B. für Querverweise) genutzt werden. Bei der Benennung des Labels sollten Sonderzeichen und Umlaute vermieden werden. Außer lateinischen Buchstaben und Zahlen sollten nur Bindestrich und Doppelpunkt verwendet werden.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Typ}
+Der gewählte Typ muss bei der Sprachwahl \verb|german| einer der folgenden sein:
+   
+   \begin{multicols}{4}
+      \begin{rücknstück}
+         Abbildung\\Abschnitt*\\Algorithmus\\Anmerkung\\Aufgabe\\Beispiel\\Bemerkung\\Definition\\Folgerung\\Gleichung\\Hilfssatz\\Kapitel*\\Korollar\\Lemma\\Markierung\\Proposition\\Satz\\Theorem\\Unterabschnitt
+      \end{rücknstück}
+   \end{multicols}
+
+\noindent Ist \verb|english| als Sprache eingestellt, so sind diese Typen verfügbar:
+   \begin{multicols}{4}
+      \begin{rücknstück}
+         algorithm\\annotation\\chapter*\\corollary\\definition\\equation\\example\\exercise\\figure\\label\\lemma\\proposition\\remark\\section*\\subsection\\theorem
+      \end{rücknstück}
+   \end{multicols}
+   
+\noindent Für mit * gekennzeichnete Typen muss das optionale Argument <Beschreibung> angegeben werden, falls MaMpf Informationen extrahieren soll. 
+   
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Referenzen}
+Mithilfe der folgenden Befehle können Hyperlinks zu MaMpf-Medien in den Rand des Skripts gesetzt. Diese werden als klickbare QR-Codes realisiert.
+
+\vspace{0.6cm}
+\begin{minipage}{\textwidth}
+   \begin{center}
+   \begin{tabular} { l l } \toprule
+      Medium & Befehl \\ \midrule 
+      pdf & \hyperref[subsubsec:dest]{\texttt{\textbf{\textbackslash mampfdest}}}, \hyperref[subsubsec:page]{\texttt{\textbf{\textbackslash mampfpage}}} \\
+      Video & \hyperref[subsubsec:time]{\texttt{\textbf{\textbackslash mampftime}}} \\
+      Quiz(-frage) & \hyperref[subsubsec:quiz]{\texttt{\textbf{\textbackslash mampfquiz}}} \\
+      GeoGebra-Applet & \hyperref[subsubsec:geo]{\texttt{\textbf{\textbackslash mampfgeo}}} \\ \bottomrule
+   \end{tabular}
+   \end{center}
+   \captionof{table}{Welchen Befehl für welches Medium?}
+\end{minipage}
+
+\subsubsection*{Hinweis}Meist werden die Verlinkungen erst nach mehrmaligem Kompilieren an die richtige Stelle gesetzt werden. 
+\vspace{0.4cm}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Der \texttt{\textbackslash mampfdest}-Befehl} \label{subsubsec:dest}
+Der \verb|\mampfdest|-Befehl eignet sich dazu, Referenzen auf Stellen in einem Skript zu setzen, die mit einem \verb|\mampflabel| versehen und bereits von MaMpf importiert worden sind. Es ist sogar möglich, jede Named Destination in einer pdf-Datei auf MaMpf zu verlinken. Der Befehl nimmt die drei obligatorischen Argumente <Label>, <Mediennummer> und <Text im Skript> sowie das optionale Argument <Shift> entgegen. Er ist von der Form:
+   \begin{verbatim}
+\mampfdest[<Shift>]{<Label>}{<Mediennummer>}{<Text im Skript>}
+   \end{verbatim}
+\vspace{-0.5cm}
+Durch das Argument <Shift> kann die vertikale Positionierung des QR-Codes verändert werden. Der QR-Code wird um das <Shift>-fache der Seitenrandbreite nach unten verschoben, wobei <Shift> eine reelle Zahl ist. Positive Werte bewirken eine Verschiebung nach unten, negative nach oben.  
+%\vspace{0.4cm}  
+   
+\subsubsection*{Benötige Informationen finden: Label und Mediennummer} \label{subsubsec:infos}
+Die erforderlichen Informationen können über MaMpf ermittelt werden. Dazu loggt man sich ein und navigiert zu dem Abschnitt, in dem sich etwas befindet, das man referenzieren möchte. Die Veranstaltung, zu der der Abschnitt gehört, muss dafür abonniert sein. Dies kann über \userset oder auf der persönlichen Startseite getan werden. Um zum gewünschten Abschnitt zu gelangen, steuert man über das MaMpf-Logo (oben links in der Navigationsleiste) die persönliche Startseite an. Dort wählt man die gewünschte Veranstaltung aus. Anschließend klickt man bei \textsf{Vorlesungsinhalt} den gesuchten Abschnitt an, woraufhin sich die Seite des Abschnitts (siehe unten) öffnet. Durch Mouseover wird der Link zum anvisierten Referenzpunkt unten links angezeigt.
+\vspace{0.4cm}  
+
+\noindent \begin{minipage}{\textwidth}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/mampfdest_m.png}}
+    \captionof{figure}{Mouseover auf der Seite des Abschnitts \textsf{In- und Umkreis}}
+\end{minipage}
+\vspace{0.1cm}
+
+\subsubsection*{Angezeigte Adresse}
+https://mampf.mathi.uni-heidelberg.de/media/\colorbox{LightGoldenrod1!80}{361}/display?destination=\colorbox{MediumPurple1!40}{defn:Kreis}
+
+\subsubsection*{\LaTeX-Code}
+\vspace{-0.2cm}
+\lstset{escapeinside= {(*@}{@*)}}
+   \begin{lstlisting}   
+Hunde laufen gerne im \mampfdest[0.15]{(*@\colorbox{MediumPurple1!40}{defn:Kreis}@*)}{(*@\colorbox{LightGoldenrod1!80}{361}@*)}{(*@\colorbox{Plum1!70}{Kreis}@*)}. 
+   \end{lstlisting}
+\vspace{0.2cm}
+
+\subsubsection*{Ausgabe in der pdf-Datei}
+Hunde laufen gerne im \mampfdest[0.15]{defn:Kreis}{361}{\colorbox{Plum1!70}{Kreis}}. 
+\vspace{0.4cm}
+   
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+\subsubsection{Der \texttt{\textbackslash mampfpage}-Befehl} \label{subsubsec:page}
+Mit dem \verb|\mampfpage|-Befehl können Hyperlinks auf die angegebene Seite eines Mediums auf MaMpf in den Rand des Skripts gesetzt werden. Der Befehl nimmt die obligatorischen Argumente <Seite>, <Mediennummer> und <Text im Skript> sowie das optionale Argument <Shift> entgegen. Er ist von der Form:
+   \begin{verbatim}
+\mampfpage[<Shift>]{<Seite>}{<Mediennummer>}{<Text im Skript>}
+   \end{verbatim}
+\vspace{-0.5cm}
+Durch das Argument <Shift> kann die vertikale Positionierung des QR-Codes verändert werden. Der QR-Code wird um das <Shift>-fache der Seitenrandbreite nach unten verschoben, wobei <Shift> eine reelle Zahl ist. Positive Werte bewirken eine Verschiebung nach unten, negative nach oben.  
+
+\subsubsection*{Benötigte Informationen finden: Seite und Mediennummer}
+Die gesuchten Informationen kann man ebenfalls über die Seite des Abschnitts mittels Mouseover (siehe unten) in Erfahrung bringen. Wie diese erreicht werden kann, ist \hyperref[subsubsec:infos]{im Unterabschnitt zum mampfdest-Befehl} beschrieben.
+\vspace{0.4cm}  
+
+\noindent \begin{minipage}{\textwidth}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/mampfpage_m.png}}
+    \captionof{figure}{Mouseover auf der Seite des Abschnitts \textsf{Vektorräume}}
+\end{minipage}
+\vspace{0.1cm}
+
+\subsubsection*{Angezeigte Adresse}
+https://mampf.mathi.uni-heidelberg.de/media/\colorbox{LightGoldenrod1!80}{91}/display?page=\colorbox{MediumPurple1!40}{4}
+
+\subsubsection*{\LaTeX-Code}
+\vspace{-0.2cm}
+\lstset{escapeinside= {(*@}{@*)}}
+   \begin{lstlisting}   
+Katzen sind keine \mampfpage[0.15]{(*@\colorbox{MediumPurple1!40}{4}@*)}{(*@\colorbox{LightGoldenrod1!80}{91}@*)}{(*@\colorbox{Plum1!70}{Vektorräume}@*)}. 
+   \end{lstlisting}
+\vspace{0.2cm}
+
+\subsubsection*{Ausgabe in der pdf-Datei}
+Katzen sind keine \mampfpage[0.15]{4}{91}{\colorbox{Plum1!70}{Vektorräume}}. 
+\vspace{0.4cm}
+  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Der \texttt{\textbackslash mampftime}-Befehl} \label{subsubsec:time}
+Der \verb|\mampftime|-Befehl ist dafür vorgesehen, einen Link zu einem Video auf MaMpf in den Rand des Skripts zu drucken. Dabei ist es möglich, an eine beliebige Stelle im Video zu springen. Der Befehl nimmt die obligatorischen Argumente <Zeit>, <Mediennummer> und <Text im Skript> sowie das optionale Argument <Shift> entgegen. Er ist von der Form:
+   \begin{verbatim}
+\mampftime[<Shift>]{<Zeit>}{<Mediennummer>}{<Text im Skript>}
+   \end{verbatim}
+\vspace{-0.5cm}
+Durch das Argument <Shift> kann die vertikale Positionierung des QR-Codes verändert werden. Der QR-Code wird um das <Shift>-fache der Seitenrandbreite nach unten verschoben, wobei <Shift> eine reelle Zahl ist. Positive Werte bewirken eine Verschiebung nach unten, negative nach oben.  
+
+\subsubsection*{Benötigte Informationen finden: Zeit und Mediennummer}
+Die gesuchten Informationen kann man ebenfalls über die Seite des Abschnitts mittels Mouseover (siehe unten) in Erfahrung bringen. Wie diese erreicht werden kann, ist \hyperref[subsubsec:infos]{im Unterabschnitt zum mampfdest-Befehl} beschrieben.
+\vspace{0.4cm}  
+
+\noindent \begin{minipage}{\textwidth}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/mampftime_m.png}}
+    \captionof{figure}{Mouseover auf der Seite des Abschnitts \textsf{Euklidische Vektorräume}}
+ \end{minipage}
+\vspace{0.1cm}
+
+\subsubsection*{Angezeigte Adresse}
+https://mampf.mathi.uni-heidelberg.de/media/\colorbox{LightGoldenrod1!80}{18}/play?time=\colorbox{MediumPurple1!40}{3597.269}
+
+\subsubsection*{\LaTeX-Code}
+\vspace{-0.2cm}
+\lstset{escapeinside= {(*@}{@*)}}
+   \begin{lstlisting}   
+Krokodile lieben Videos über \mampftime[0.15]{(*@\colorbox{MediumPurple1!40}{3597}@*)}{(*@\colorbox{LightGoldenrod1!80}{18}@*)}{(*@\colorbox{Plum1!70}{Elementarteiler}@*)}. 
+   \end{lstlisting}
+\vspace{0.2cm}
+
+\subsubsection*{Ausgabe in der pdf-Datei}
+Krokodile lieben Videos über \mampftime[0.15]{3597}{18}{\colorbox{Plum1!70}{Elementarteiler}}. 
+\vspace{0.4cm}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Der \texttt{\textbackslash mampfquiz}-Befehl} \label{subsubsec:quiz}
+Mit dem \verb|\mampfquiz|-Befehl können Verlinkungen zu Quizzes oder einzelnen Quizfragen auf MaMpf in den Rand des Skripts gedruckt werden. Der Befehl nimmt die obligatorischen Argumente <Mediennummer> und <Text im Skript> sowie das optionale Argument <Shift> entgegen. Er ist von der Form: und ist von folgender Form:
+   \begin{verbatim}
+\mampfquiz[<Shift>]{<Mediennummer>}{<Text im Skript>}
+   \end{verbatim}
+\vspace{-0.5cm}
+Durch das Argument <Shift> kann die vertikale Positionierung des QR-Codes verändert werden. Der QR-Code wird um das <Shift>-fache der Seitenrandbreite nach unten verschoben, wobei <Shift> eine reelle Zahl ist. Positive Werte bewirken eine Verschiebung nach unten, negative nach oben.  
+
+\subsubsection*{Benötigte Information finden: Mediennummer}
+Die Mediennumer kann dem Link des Quiz' bzw. der Quizfrage entnommen werden.
+
+\subsubsection*{Angezeigte Adresse}
+https://mampf.mathi.uni-heidelberg.de/quizzes/\colorbox{LightGoldenrod1!80}{227}/take
+
+\subsubsection*{\LaTeX-Code}
+\vspace{-0.2cm}
+\lstset{escapeinside= {(*@}{@*)}}
+   \begin{lstlisting}   
+Echsen rätseln gerne über den
+    \mampfquiz[0.15]{(*@\colorbox{LightGoldenrod1!80}{227}@*)}{(*@\colorbox{Plum1!70}{Grad von Körpererweiterungen}@*)}. 
+   \end{lstlisting}
+\vspace{0.2cm}
+
+\subsubsection*{Ausgabe in der pdf-Datei}
+Echsen rätseln gerne über den \mampfquiz[0.15]{227}{\colorbox{Plum1!70}{Grad von Körpererweiterungen}}.
+\vspace{0.4cm}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection{Der \texttt{\textbackslash mampfgeo}-Befehl} \label{subsubsec:geo}
+Der \verb|\mampfgeo|-Befehl ist für das Setzen von Verlinkungen zu Geogebra-Grafiken auf MaMpf in den Rand des Skripts vorgesehen. Der Befehl nimmt die obligatorischen Argumente <Mediennummer> und <Text im Skript> sowie das optionale Argument <Shift> entgegen. Er ist von der Form:
+
+   \begin{verbatim}
+\mampfgeo[<Shift>]{<Mediennummer>}{<Text im Skript>}
+   \end{verbatim}
+\vspace{-0.5cm}
+Durch das Argument <Shift> kann die vertikale Positionierung des QR-Codes verändert werden. Der QR-Code wird um das <Shift>-fache der Seitenrandbreite nach unten verschoben, wobei <Shift> eine reelle Zahl ist. Positive Werte bewirken eine Verschiebung nach unten, negative nach oben.  
+
+\subsubsection*{Benötigte Information finden: Mediennummer}
+Die Mediennummer kann dem Link der Geogebra-Grafik entnommen werden.
+
+\subsubsection*{Angezeigte Adresse}
+https://mampf.mathi.uni-heidelberg.de/media/\colorbox{LightGoldenrod1!80}{10360}/geogebra
+
+\subsubsection*{\LaTeX-Code}
+\vspace{-0.2cm}
+\lstset{escapeinside= {(*@}{@*)}}
+   \begin{lstlisting}[breaklines=true]   
+Wenn Lachse ein Hindernis überqueren müssen, legen sie in der Luft eine \mampfgeo[0.3]{(*@\colorbox{LightGoldenrod1!80}{10360}@*)}{(*@\colorbox{Plum1!70}{Parabel}@*)} zurück. 
+   \end{lstlisting}
+\vspace{0.2cm}
+
+\subsubsection*{Ausgabe in der pdf-Datei}
+Wenn Lachse ein Hindernis überqueren müssen, legen sie in der Luft eine \mampfgeo[0.3]{10360}{\colorbox{Plum1!70}{Parabel}} zurück.
+   
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Informationen mit MaMpf extrahieren
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+   
+\section{Informationen mit MaMpf extrahieren} \label{sec:extract}
+\subsection{Voraussetzungen}
+Damit MaMpf Informationen aus einem Skript importieren kann, muss die \textsf{\textbf{neuste Version des MaMpf-Pakets}} verwendet werden. Zudem muss das Skript auf der Plattform hochgeladen werden. Dazu sind \textsf{\textbf{Editorenrechte}} erforderlich, d.h. die betreffende Person muss Adminstrator*in, Moduleditor*in oder Veranstaltungseditor*in sein. Außerdem ist zu beachten, dass Skripte nur auf \textsf{\textbf{Veranstaltungsebene}} hinzugefügt werden können und es pro Veranstaltung höchstens ein Skript geben kann. Die Veranstaltung, zu der ein Skript hochgeladen werden soll, muss in den Profileinstellungen \textsf{\textbf{abonniert}} sein. Diese sind über \userset (oben links) zu erreichen. Alternativ kann die Veranstaltung auch auf der Startseite, zu der man über das MaMpf-Logo (oben links) gelangt, abonniert werden. Ferner muss der \textsf{\textbf{Skriptmodus}} gewählt werden. Auf diesen kann man unter \textsf{Einstellungen} umstellen: Zu den \textsf{Einstellungen} gelangt man auf folgendem Weg (vgl. dazu auch \hyperref[subsec:import]{den nächsten Unterabschnitt}): Zunächst navigiert man über das MaMpf-Logo (oben links) zur Startseite. Dort wählt man die gewünschte Veranstaltung aus und klickt dort dann auf \edit (oben in der Mitte unter der Navigationsleiste) an. Die \textsf{Einstellungen} befinden sich ganz unten auf der so erreichten Seite.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Skript hochladen; Tags und Gliederung importieren
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Das Skript hochladen und Gliederung sowie Tags importieren} \label{subsec:import}
+\subsubsection*{Schritt 1: Zur Editor-Veranstaltungsseite navigieren}
+Medien, insbesondere Skripte, können auf der Editor-Veranstaltungsseite hochgeladen werden. Dorthin gelangt man, indem über das MaMpf-Logo (oben links) zur Startseite navigiert, dort die entsprechende Verstaltung auswählt und dann auf \edit (oben in der Mitte unter der Navigationsleiste) klickt.
+\vspace{0.6cm}
+
+\noindent \begin{minipage}{\textwidth}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/01_c.png}}
+    \begin{rückkeinstück}
+        Startseite der Vorlesung Algebra 1 SS 20. Von dort aus kommt man zur Editor-Veranstaltungsseite.
+        \vspace{0.4cm}
+    \end{rückkeinstück}
+\end{minipage}
+
+\noindent \begin{minipage}{\textwidth}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/02_c.png}}
+     \begin{rückkeinstück}
+        Editor-Veranstaltungsseite. Hier kann ein Skript angelegt werden.
+        \vspace{0.6cm}
+    \end{rückkeinstück}
+\end{minipage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection*{Schritt 2: Auf Skriptmodus umstellen}
+Wenn man auf der Editor-Veranstaltungsseite nach unten scrollt, kann man unter \textsf{Einstellungen} die \textsf{Inhaltsermittlung} auf \textsf{unter Verwendung eines Veranstaltungsskriptes, das mit dem MaMpf-\LaTeX-Paket erstellt wurde} umstellen. Diese Änderung muss gespeichtert werden. Die Wahl des Skriptmodus' ist erforderlich, damit Inhalte aus dem Skript extrahiert werden können.
+\vspace{0.6cm}
+
+\noindent \begin{minipage}{\textwidth}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/03_c.png}}
+    \begin{rückkeinstück}
+        Einstellungen auf der Editor-Veranstaltungsseite. Hier kann der Skriptmodus gewählt werden.
+        \vspace{0.6cm}
+    \end{rückkeinstück}
+\end{minipage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection*{Schritt 3: Das Skript anlegen}
+Unter \textsf{Medien} klickt man nun auf den Button \colorbox{LightSteelBlue3!50!}{\textsf{Medium anlegen}}, dadurch öffnet sich ein neues Fenster. In diesem wählt man den Typ \textsf{Skript}, vergibt einen Titel und bestätigt über den Button \colorbox{LightSteelBlue3!60!}{\textsf{Speichern und bearbeiten}}. Auf diese Weise gelangt man auf die Seite des Mediums.
+\vspace{0.6cm}
+              
+\noindent \begin{minipage}{\textwidth}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/04_c.png}}
+    \begin{rückkeinstück}
+        Ein neues Medium wird angelegt.
+        \vspace{0.6cm}
+    \end{rückkeinstück}
+\end{minipage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+              
+\subsubsection*{Schritt 4: Das Skript hochladen}
+Bei \textsf{Dokumente} kann nun über \colorbox{LightSteelBlue3!60!}{\textsf{Datei}} ein Skript ausgewählt und hochgeladen werden. Danach muss über den Button oben in der Mitte gespeichert werden. Unter \textsf{Dokumente} werden nun auch die Buttons \colorbox{LightSteelBlue3!60!}{\textsf{Details}} und \colorbox{LightSteelBlue3!60!}{\textsf{Übernehmen}} angezeigt. 
+\vspace{0.6cm}
+
+\noindent \begin{minipage}{\textwidth}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/05_c.png}}
+    \begin{rückkeinstück}
+        Die Seite des Mediums, die sich öffnet, nachdem auf \adjustbox{scale=0.9,margin=0.5ex,bgcolor=shadecolor}{\textsf{Speichern und bearbeiten}} geklickt wurde.
+        \vspace{0.6cm}
+    \end{rückkeinstück}
+\end{minipage}
+
+\noindent \begin{minipage}{\textwidth}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/06_c.png}}
+    \begin{rückkeinstück}
+        Unten auf der Seite des Mediums kann ein Skript durch Klicken auf \adjustbox{scale=0.9,margin=0.5ex,bgcolor=shadecolor}{\textsf{Datei}} hochgeladen werden. 
+        \vspace{0.6cm}
+    \end{rückkeinstück}
+\end{minipage}
+
+\noindent \begin{minipage}{\textwidth}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/08_c.png}}
+    \begin{rückkeinstück}
+        Das Hochladen des Skripts muss oben auf der Seite des Mediums gespeichert werden.
+        \vspace{0.6cm}
+    \end{rückkeinstück}
+\end{minipage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  
+\subsubsection*{Schritt 5: Elemente auswählen, die importiert werden sollen}
+Sofern es keine Widersprüche gibt, kann man über den Button \colorbox{LightSteelBlue3!60!}{\textsf{Details}} durch Anklicken der Abschnitte und das Setzen von Haken festlegen, was im Inhaltverzeichnis angezeigt und welche Tags importiert werden sollen. Bei den Tags, die in MaMpf integriert werden sollen, muss \checked bei \tagme gewählt werden. Bei allem, das in der detaillierten Gliederung aufgeführt werden sollen, muss \toggleon bei \eye gesetzt sein. Zum Schluss muss man nur noch auf \colorbox{LightSteelBlue3!60!}{\textsf{Übernehmen}} klicken.
+\vspace{0.6cm}
+            
+\noindent \begin{minipage}{\textwidth}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/09_c.png}}
+    \begin{rückkeinstück2}
+        Wenn das Skript gespeichert wurde, tauchen unter \textsf{Dokumente} zwei neue Buttons auf: \adjustbox{scale=0.9,scale=0.9,margin=0.5ex,bgcolor=shadecolor}{\textsf{Details}} und \adjustbox{scale=0.9,scale=0.9,margin=0.5ex,bgcolor=shadecolor}{\textsf{Übernehmen}}. Hier sind keine Widersprüche gefunden worden, daher kann mit der Auswahl der zu übernehmenden Elemente fortgefahren werden. Die nächsten beiden Screenshots sind in diesem Fall irrelevant.
+        \vspace{0.3cm}
+    \end{rückkeinstück2}
+\end{minipage}
+
+\noindent \begin{minipage}{\textwidth}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/system1.png}}
+    \begin{rückkeinstück2}
+        Das Skript kann nicht übernommen werden, weil es Widersprüche gibt. Über den Button \adjustbox{scale=0.9,margin=0.5ex,bgcolor=shadecolor}{\textsf{Details}} kann in Erfahrung gebracht werden, woran das liegt.
+        \vspace{0.6cm}
+    \end{rückkeinstück2}
+\end{minipage}
+
+\noindent \begin{minipage}{\textwidth}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/system2.png}}
+    \begin{rückkeinstück2}
+       In diesem Fall geht der Widerspruch darauf zurück, dass eine veraltete Version des MaMpf-Pakets zur Erstellung des Skripts verwendet worden ist. Um dieses Problem zu beheben, muss das Skript mit der aktuellen Version des MaMpf-Pakets kompiliert und erneut auf MaMpf hochgeladen werden. Danach können über \adjustbox{scale=0.9,margin=0.5ex,bgcolor=shadecolor}{\textsf{Details}} die für die Übernahme vorgesehenen Elemente ausgewählt werden.
+        \vspace{0.6cm}
+    \end{rückkeinstück2}
+\end{minipage}
+
+\noindent \begin{minipage}{\textwidth}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/11_neu_c.png}}
+\end{minipage}
+              
+\begin{rückkeinstück2}
+    \noindent Ein solches Fenster öffnet sich nach dem Klicken auf \adjustbox{scale=0.9,margin=0.5ex,bgcolor=shadecolor}{\textsf{Details}}. Hier wurde der Abschnitt \textsf{\S 1.1 Hunde} ausgewählt und folgende Wahl getroffen: für \textit{unwichtige Gleichung} soll weder ein Tag noch ein Eintrag in der Feingliederung angelegt werden, für \textit{wichtige Gleichung} ein Eintrag in der Feingliederung, aber kein Tag und für \textit{Pluto} ein Tag, aber kein Eintrag in der Feingliederung. Für alle anderen Labels sollen sowohl ein Tag als auch ein Eintrag in der Feingliederung angelegt werden.
+    \vspace{0.6cm}
+\end{rückkeinstück2}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection*{Schritt 6: Die Struktur des Skripts übernehmen}
+    \noindent \begin{minipage}{\textwidth}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/12_planb_c.png}}
+    \begin{rückkeinstück2}
+        Wenn das Skript übernommen wurde und man durch Klicken auf das MaMpf-Logo (oben links) die Adminstration verlassen hat, erwartet einen auf der Startseite der Vorlesung die importierte Grobgliederung. Für \textit{wichtige Gleichung} und \textit{unwichtige Gleichung} wurden keine Tags angelegt. 
+        \vspace{0.6cm}
+    \end{rückkeinstück2}                
+\end{minipage}
+              
+\noindent \begin{minipage}{\textwidth}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/13_neu_c.png}}
+    \begin{rückkeinstück2}
+        Durch Anklicken eines Abschnitts gelangt man auf die Seite des Abschnitt. Für alle Labels außer \textit{unwichtige Gleichung} und \textit{Pluto} wurden Einträge in der Feingliederung angelegt.
+    \end{rückkeinstück2}
+\end{minipage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Gliederungsimport in Videos
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+              
+\subsection{Gliederungsimport in Videos}
+Das Editieren von Videos mit dem THymE-Editor kann durch Übernahme der Gliederung beschleunigt werden. Damit dieses Feature genutzt werden kann, muss zuvor ein Skript hochgeladen und dessen Gliederung importiert worden sein (dies wird im \hyperref[sec:extract]{vorherigen Abschnitt} beschrieben). Um die Gliederung des Skripts teilweise in ein Video einzufügen, geht man wie folgt vor:
+
+\subsubsection*{Schritt 1: Eine Sitzung anlegen}
+Zunächst navigiert man zur Editor-Veranstaltungsseite: Durch Anklicken des MaMpf-Logos (oben links) gelangt man auf die Startseite. Auf dieser wählt man die gewünschte Veranstaltung aus und klickt dort dann auf \edit (oben in der Mitte unter der Navigationsleiste) an. Auf der Editor-Veranstaltungsseite betätigt man den Button \colorbox{LightSteelBlue3!60!}{\textsf{Sitzung anlegen}} und wählt im nun geöffneten Dialogfenster das Datum der Sitzung und in dieser behandelte Abschnitte aus.
+
+\noindent \begin{minipage}{\textwidth}
+    \vspace{0.6cm}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/video_01.png}}
+    \begin{rückkeinstück}
+        Auf der Editor-Veranstaltungsseite befindet sich der Button \adjustbox{scale=0.9,margin=0.5ex,bgcolor=shadecolor}{\textsf{Sitzung anlegen}}.
+        \vspace{0.6cm}
+    \end{rückkeinstück}
+\end{minipage}
+
+\noindent \begin{minipage}{\textwidth}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/video_04.png}}
+    \begin{rückkeinstück2}
+        Durch Betätigen des Buttons \adjustbox{scale=0.9,margin=0.5ex,bgcolor=shadecolor}{\textsf{Sitzung anlegen}} öffnet sich ein Dialogfenster, in dem man das Datum und die behandelten Abschnitte auswählt.
+    \end{rückkeinstück2}
+\end{minipage}
+            
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+\subsubsection*{Schritt 2: Anfang und Ende der Sitzung auswählen}
+Daraufhin wird man auf die Seite der Sitzung geleitet. Auf dieser legt man in den entsprechenden Drop-Down-Feldern ein Anfangs- und ein End-Item fest.\\	
+\noindent \begin{minipage}{\textwidth}
+    \vspace{0.6cm}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/video_05.png}}
+    \begin{rückkeinstück}
+        In der Box \textsf{Inhalt} kann ein Anfangs- und ein End-Item ausgewählt werden.
+    \end{rückkeinstück}
+\end{minipage}             
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection*{Schritt 3: Das Video anlegen}
+In der Box \textsf{Basisdaten} bei \textsf{Medien} kann über den Button \add ein Video angelegt werden. Dadurch öffnet sich ein Dialogfenster, in dem man den Medientyp ausgewählt und das Medium benennt. Nachdem das Medium gespeichert ist, gelangt man auf die Seite dieses Mediums und kann in der Box \textsf{Dokumente} bei \textsf{Video} über den Button \colorbox{LightSteelBlue3!60!}{\textsf{Datei}} ein auf dem verwendeten Gerät gespeichertes Video hochladen. 
+   
+\noindent \begin{minipage}{\textwidth}
+    \vspace{0.6cm}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/video_06.png}}
+    \begin{rückkeinstück}
+        In der Box \textsf{Basisdaten} kann bei \textsf{Medien} über \add ein Medium angelegt werden.
+        \vspace{0.6cm}
+    \end{rückkeinstück}
+\end{minipage}
+              
+\noindent \begin{minipage}{\textwidth}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/video_07.png}}
+    \begin{rückkeinstück2}
+        Zum Anlegen eines Mediums öffnet sich ein Dialogfenster. Hier muss der Medientyp und ein Titel festgelegt werden.
+    \end{rückkeinstück2}
+\end{minipage}
+              
+\noindent \begin{minipage}{\textwidth}
+    \vspace{0.6cm}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/video_08a.png}}
+    \begin{rückkeinstück2}
+        In der Box \textsf{Dokumente} kann über den Buttons \adjustbox{scale=0.9,margin=0.5ex,bgcolor=shadecolor}{\textsf{Datei}} ein Video ausgewählt und hochgeladen werden.
+    \end{rückkeinstück2}
+\end{minipage}
+
+\noindent \begin{minipage}{\textwidth}
+    \vspace{0.6cm}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/video_09b.png}}
+    \begin{rückkeinstück2}
+        Ein Video ist hochgeladen worden. Dieses muss vor der weiteren Bearbeitung gespeichtert werden. Der dazu benötigte Button befindet sich am Seitenanfang.
+    \end{rückkeinstück2}
+\end{minipage}
+              
+\noindent \begin{minipage}{\textwidth}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/video_10.png}}
+    \begin{rückkeinstück}
+        Das Video ist gespeichert und kann über den Button \adjustbox{scale=0.9,margin=0.5ex,bgcolor=shadecolor}{\textsf{Editor}} bearbeitet werden.
+    \end{rückkeinstück}
+\end{minipage}              
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                           
+\subsubsection*{Schritt 4: Das Inhaltsverzeichnis im THymE-Editor hinzufügen und bearbeiten}
+Das Inhaltsverzeichnis importiert man, indem man unten links in der Box \textsf{Inhaltsverzeichnis} auf den Button \import klickt. Nachdem die Gliederung übernommen worden ist, müssen die Anfangszeitpunkte angepasst werden.
+              
+\noindent \begin{minipage}{\textwidth}
+    \vspace{0.6cm}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/video_11.png}}
+    \begin{rückkeinstück}
+        Zunächst ist keine Gliederung für das Video verfügbar.
+    \end{rückkeinstück}
+\end{minipage}
+              
+\noindent \begin{minipage}{\textwidth}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/video_13.png}}
+    \begin{rückkeinstück}
+        Nachdem der Button \import angeklickt worden ist, erscheint die Gliederung.
+    \end{rückkeinstück}
+\end{minipage}
+
+\noindent \begin{minipage}{\textwidth}
+    \vspace{0.6cm}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/video_14_p.png}}
+    \begin{rückkeinstück2}
+        Für die Gliederungspunkte müssen oben rechts noch die passenden Anfangszeitpunkte ausgewählt werden. Außerdem kann hier noch die Seite im Skript angeben werden, damit man über das entsprechende Icon dorthin statt an den Anfang des Skripts springt.
+    \end{rückkeinstück2}
+\end{minipage}
+
+\noindent \begin{minipage}{\textwidth}
+    \vspace{0.6cm}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/video_15.png}}
+    \begin{rückkeinstück2}
+        Wenn man nun auf \adjustbox{scale=0.9,margin=0.5ex,bgcolor=shadecolor}{\textsf{zurück zum Medium}} klickt, erwartet einen unter \textsf{Inhalt} die soeben angelegte Gliederung.
+    \end{rückkeinstück2}
+\end{minipage}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsubsection*{Schritt 5: Das Video veröffentlichen}
+Nun muss das Medium nur noch mithilfe des entsprechenden Buttons auf der Seite des Mediums veröffentlicht werden.
+
+\noindent \begin{minipage}{\textwidth}
+    \vspace{0.6cm}
+    \adjustbox{cframe=Ivory3}{\includegraphics[width=\linewidth]{screenshots/video_17.png}}
+    \begin{rückkeinstück2}
+        Nach der Veröffentlichung erscheinen die Icons zum zielgenauen Springen zu den Gliederungsmarkierung im Video.
+    \end{rückkeinstück2}
+\end{minipage}
+
+
+\newpage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Implementierung
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Implementierung}
+\lstinputlisting[breaklines=true]{mampf.sty} % ''-'' und ''%'' auf Seitenlänge gekürzt, Leerzeichen im Kommentarblock gelöscht, um Input übersichtlicher zu gestalten
+
+\end{document}
